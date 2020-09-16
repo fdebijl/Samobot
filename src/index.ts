@@ -22,14 +22,14 @@ const config: TwitterOptions = {
 };
 
 const twitter = new Twitter(config);
-const accountsToFollow = ['957585893912731600'];
+const accountsToFollow = process.env.FOLLOWED_ACCOUNTS as string;
 const parameters = {
-  follow: accountsToFollow.join(',')
+  follow: accountsToFollow
 };
 
 const stream = twitter.stream("statuses/filter", parameters)
   .on("start", () => {
-    clog.log(`Started listening for tweets from account(s): ${accountsToFollow.join(', ')}`, LOGLEVEL.DEBUG)
+    clog.log(`Started listening for tweets from ${accountsToFollow.split(',').length > 1 ? 'accounts' : 'account'}: ${accountsToFollow.split(',').join(', ')}`, LOGLEVEL.DEBUG)
   })
   .on("data", async (tweet: ExtendedTweet)  => {
     clog.log(`New tweet from @${tweet.user.screen_name} with ID ${tweet.id_str}`);
