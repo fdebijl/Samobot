@@ -22,7 +22,7 @@ const config: TwitterOptions = {
 };
 
 const twitter = new Twitter(config);
-const accountsToFollow = ['957585893912731600', '33972891']
+const accountsToFollow = ['957585893912731600'];
 const parameters = {
   follow: accountsToFollow.join(',')
 };
