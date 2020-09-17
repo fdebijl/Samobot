@@ -63,9 +63,9 @@ const stream = twitter.stream("statuses/filter", parameters)
       })
     });
   })
-  //.on("ping", () => console.log("ping"))
+  .on("ping", () => clog.log("Received ping on stream", LOGLEVEL.DEBUG))
   .on("error", error => console.log("error", error))
-  //.on("end", response => console.log("end"));
+  .on("end", response => clog.log(`Stream ended: ${response}`, LOGLEVEL.WARN));
 
 process.on('SIGTERM', () => {
   clog.log(`Received SIGTERM, destroying stream`, LOGLEVEL.INFO);
