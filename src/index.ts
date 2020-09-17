@@ -18,8 +18,9 @@ const config: TwitterOptions = {
 
 const twitter = new Twitter(config);
 const accountsToFollow = process.env.FOLLOWED_ACCOUNTS as string;
+const accountsToPost = accountsToFollow.split(',');
 const parameters = {
-  follow: accountsToFollow
+  follow: accountsToFollow.replace(/\s/g, '')
 };
 
 let stream: Stream;
@@ -30,6 +31,11 @@ const startStream = (): void => {
     clog.log(`Started listening for tweets from ${accountsToFollow.split(',').length > 1 ? 'accounts' : 'account'}: ${accountsToFollow.split(',').join(', ')}`, LOGLEVEL.DEBUG)
   })
   .on("data", async (tweet: ExtendedTweet)  => {
+    if (!accountsToPost.includes(tweet.user.id_str)) {
+      clog.log(`Ignoring tweet to followed account.`, LOGLEVEL.DEBUG);
+      return;
+    }
+
     clog.log(`New tweet from @${tweet.user.screen_name} with ID ${tweet.id_str}`);
     const targetChannel = await client.channels.resolve(process.env.CHANNEL_ID as string);
 
@@ -58,16 +64,21 @@ const startStream = (): void => {
   })
   .on("error", error => clog.log(error, LOGLEVEL.ERROR))
   .on("end", (reason) => {
-    clog.log(`Stream ended, restarting...`, LOGLEVEL.INFO);
+    clog.log(`Stream ended, restarting in 60 seconds`, LOGLEVEL.INFO);
+    process.nextTick(() => stream.destroy());
+
     setTimeout(() => {
       startStream();
-    }, 30 * 1000)
+    }, 60 * 1000)
   });
 }
 
 process.on('SIGTERM', () => {
   clog.log(`Received SIGTERM, destroying stream`, LOGLEVEL.INFO);
-  process.nextTick(() => stream.destroy());
+
+  if (stream) {
+    process.nextTick(() => stream.destroy());
+  }
 });
 
 const client = new Discord.Client();
