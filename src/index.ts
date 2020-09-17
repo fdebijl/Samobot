@@ -32,7 +32,6 @@ const startStream = (): void => {
   })
   .on("data", async (tweet: ExtendedTweet)  => {
     if (!accountsToPost.includes(tweet.user.id_str)) {
-      clog.log(`Ignoring tweet to followed account.`, LOGLEVEL.DEBUG);
       return;
     }
 
@@ -54,8 +53,21 @@ const startStream = (): void => {
       return;
     }
 
-    tweet.extended_entities.media.forEach((image) => {
-      const url = image.media_url_https;
+    tweet.extended_entities.media.forEach((media) => {
+      let url = '';
+
+      if (media.type === 'video') {
+        const bestVariant: any = (media as any).video_info.variants.filter((variant: any) => {
+          return !!variant.bitrate;
+        }).sort((a: {bitrate: number}, b: {bitrate: number}) => {
+          return b.bitrate - a.bitrate;
+        });
+
+        url = bestVariant[0].url;
+      } else {
+        url = media.media_url_https;
+      }
+
       const attachment = new MessageAttachment(url);
       (targetChannel as TextChannel).send(attachment).catch(error => {
         clog.log(`An error occured while sending an image to a channel: ${error}`);
