@@ -1,23 +1,13 @@
 import dotenv from 'dotenv';
 import Discord, { TextChannel, MessageAttachment } from 'discord.js';
 import { Clog, LOGLEVEL} from '@fdebijl/clog';
-import Twitter, { TwitterOptions,  } from 'twitter-lite'
+import Twitter, { Stream, TwitterOptions,  } from 'twitter-lite'
 
 import { CONFIG } from './config';
 
 dotenv.config();
 
 const clog = new Clog(CONFIG.MIN_LOGLEVEL);
-const client = new Discord.Client();
-client.login(process.env.BOT_TOKEN);
-
-client.on('ready', () => {
-  clog.log('Bot is ready', LOGLEVEL.DEBUG);
-});
-
-process.on('unhandledRejection', error => {
-	clog.log(`Unhandled promise rejection: ${error}`, LOGLEVEL.ERROR);
-});
 
 const config: TwitterOptions = {
   consumer_key: process.env.CONSUMER_KEY as string,
@@ -32,7 +22,10 @@ const parameters = {
   follow: accountsToFollow
 };
 
-const stream = twitter.stream("statuses/filter", parameters)
+let stream: Stream;
+
+const startStream = (): void => {
+  stream = twitter.stream("statuses/filter", parameters)
   .on("start", () => {
     clog.log(`Started listening for tweets from ${accountsToFollow.split(',').length > 1 ? 'accounts' : 'account'}: ${accountsToFollow.split(',').join(', ')}`, LOGLEVEL.DEBUG)
   })
@@ -63,11 +56,22 @@ const stream = twitter.stream("statuses/filter", parameters)
       })
     });
   })
-  .on("ping", () => clog.log("Received ping on stream", LOGLEVEL.DEBUG))
-  .on("error", error => console.log("error", error))
-  .on("end", response => clog.log(`Stream ended: ${response}`, LOGLEVEL.WARN));
+  .on("error", error => clog.log(error, LOGLEVEL.ERROR))
+  .on("end", (reason) => {
+    clog.log(`Stream ended, restarting...`, LOGLEVEL.INFO);
+    startStream();
+  });
+}
 
 process.on('SIGTERM', () => {
   clog.log(`Received SIGTERM, destroying stream`, LOGLEVEL.INFO);
   process.nextTick(() => stream.destroy());
+});
+
+const client = new Discord.Client();
+client.login(process.env.BOT_TOKEN);
+
+client.on('ready', () => {
+  clog.log('Bot is ready', LOGLEVEL.DEBUG);
+  startStream();
 });
