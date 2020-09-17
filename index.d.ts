@@ -179,4 +179,5 @@ declare type ExtendedTweet = {
   possibly_sensitive: boolean;
   possibly_sensitive_appealable: boolean;
   lang: string;
+  retweeted_status: ExtendedTweet;
 }
