@@ -59,7 +59,9 @@ const startStream = (): void => {
   .on("error", error => clog.log(error, LOGLEVEL.ERROR))
   .on("end", (reason) => {
     clog.log(`Stream ended, restarting...`, LOGLEVEL.INFO);
-    startStream();
+    setTimeout(() => {
+      startStream();
+    }, 30 * 1000)
   });
 }
 
