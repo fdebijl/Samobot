@@ -32,6 +32,12 @@ const startStream = (): void => {
   })
   .on("data", async (tweet: ExtendedTweet)  => {
     if (!accountsToPost.includes(tweet.user.id_str)) {
+      // Reply to an account we're following
+      return;
+    }
+
+    if (tweet.retweeted_status) {
+      // Ignore retweets
       return;
     }
 
