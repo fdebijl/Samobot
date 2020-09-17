@@ -10,8 +10,13 @@ dotenv.config();
 const clog = new Clog(CONFIG.MIN_LOGLEVEL);
 const client = new Discord.Client();
 client.login(process.env.BOT_TOKEN);
+
 client.on('ready', () => {
   clog.log('Bot is ready', LOGLEVEL.DEBUG);
+});
+
+process.on('unhandledRejection', error => {
+	clog.log(`Unhandled promise rejection: ${error}`, LOGLEVEL.ERROR);
 });
 
 const config: TwitterOptions = {
@@ -41,17 +46,21 @@ const stream = twitter.stream("statuses/filter", parameters)
     }
 
     if (!tweet.extended_entities) {
+      clog.log(`Tweet doesn't have extended entities, skipping`, LOGLEVEL.DEBUG);
       return;
     }
 
     if (tweet.extended_entities.media.length === 0) {
+      clog.log(`Tweet doesn't have any media inside extended entities, skipping`, LOGLEVEL.DEBUG);
       return;
     }
 
     tweet.extended_entities.media.forEach((image) => {
       const url = image.media_url_https;
       const attachment = new MessageAttachment(url);
-      (targetChannel as TextChannel).send(attachment);
+      (targetChannel as TextChannel).send(attachment).catch(error => {
+        clog.log(`An error occured while sending an image to a channel: ${error}`);
+      })
     });
   })
   //.on("ping", () => console.log("ping"))
