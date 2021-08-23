@@ -6,7 +6,7 @@
 		"compile": "tsc"
 	},
 	"dependencies": {
-		"@fdebijl/clog": "1.101.0",
+		"@fdebijl/clog": "1.102.0",
 		"discord.js": "12.5.3",
 		"dotenv": "10.0.0",
 		"twitter-lite": "1.1.0"
