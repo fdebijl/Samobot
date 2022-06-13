@@ -15,8 +15,8 @@
 		"@types/node": "13.13.52",
     "@types/twit": "2.2.30",
     "@types/ws": "8.5.3",
-		"@typescript-eslint/eslint-plugin": "5.27.0",
-		"@typescript-eslint/parser": "5.27.0",
+		"@typescript-eslint/eslint-plugin": "5.28.0",
+		"@typescript-eslint/parser": "5.28.0",
 		"eslint": "8.17.0",
 		"typescript": "4.7.3"
 	}
